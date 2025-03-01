@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Editor from "@monaco-editor/react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Chat from "@/components/Chat";
+import { Mic, MicOff, Phone, Video, VideoOff } from "lucide-react";
 
 interface Language {
   label: string;
@@ -38,12 +38,12 @@ const Candidate = () => {
     { label: "JavaScript", value: "javascript" },
     { label: "Python", value: "python" },
     { label: "Java", value: "java" },
-    { label: "C++", value: "cpp" }
+    { label: "C++", value: "cpp" },
   ];
 
   const themes: Theme[] = [
     { label: "Light", value: "light" },
-    { label: "Dark", value: "vs-dark" }
+    { label: "Dark", value: "vs-dark" },
   ];
 
   const cleanupConnection = () => {
@@ -96,7 +96,7 @@ const Candidate = () => {
       {
         autoClose: false,
         closeButton: false,
-        position: "top-center"
+        position: "top-center",
       }
     );
   };
@@ -107,7 +107,7 @@ const Candidate = () => {
         JSON.stringify({
           type: "terminateRoom",
           roomId,
-          role: "receiver"
+          role: "receiver",
         })
       );
     }
@@ -150,7 +150,7 @@ const Candidate = () => {
           }
         } else if (data.type === "error") {
           toast.error(data.message);
-        } else if(data.type === "MeetingEnded"){
+        } else if (data.type === "MeetingEnded") {
           toast.warning("Interview ended");
           setRoomId("");
           pcRef.current?.close();
@@ -171,6 +171,10 @@ const Candidate = () => {
   }, [roomId, router]);
 
   async function startSendingVideo() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast.error("Your browser does not support video streaming");
+      return;
+    }
     if (!roomId) return;
     setIsModalOpen(false);
     if (!socket) return;
@@ -200,7 +204,7 @@ const Candidate = () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
-        video: true
+        video: true,
       });
       stream
         .getTracks()
@@ -212,13 +216,13 @@ const Candidate = () => {
 
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
-      
+
       socket.send(
         JSON.stringify({
           type: "createOffer",
           roomId,
           sdp: peerConnection.localDescription,
-          r_link:resumeLink
+          r_link: resumeLink,
         })
       );
     } catch (error) {
@@ -233,7 +237,7 @@ const Candidate = () => {
         JSON.stringify({
           type: "editorContent",
           roomId: roomId,
-          content: value
+          content: value,
         })
       );
     }
@@ -264,49 +268,49 @@ const Candidate = () => {
   };
 
   return (
-    <div className="container mx-auto py-3">
+    <div className="container mx-auto flex flex-col">
       <ToastContainer position="top-right" />
       {isModalOpen && (
-         <div className="w-full h-full fixed z-50 inset-0 backdrop-blur-[2px] flex items-center justify-center p-4">
-         <div className="bg-white ring-[0.5px] rounded-2xl shadow-2xl transform transition-all duration-300 scale-100 w-full max-w-md py-8">
-           <div className="flex flex-col items-center px-6">
-             <h2 className="text-3xl font-bold text-gray-800 mb-8">
-               Join Room
-             </h2>
-           </div>
-   
-           <div className="flex flex-col gap-6 px-6">
-             <div className="space-y-1">
-               <input
-                 type="text"
-                 value={roomId}
-                 onChange={(e) => setRoomId(e.target.value)}
-                 placeholder="Enter Room ID"
-                 className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 
+        <div className="w-full h-full fixed z-50 inset-0 backdrop-blur-[2px] flex items-center justify-center p-4">
+          <div className="bg-white ring-[0.5px] rounded-2xl shadow-2xl transform transition-all duration-300 scale-100 w-full max-w-md py-8">
+            <div className="flex flex-col items-center px-6">
+              <h2 className="text-3xl font-bold text-gray-800 mb-8">
+                Join Room
+              </h2>
+            </div>
+
+            <div className="flex flex-col gap-6 px-6">
+              <div className="space-y-1">
+                <input
+                  type="text"
+                  value={roomId}
+                  onChange={(e) => setRoomId(e.target.value)}
+                  placeholder="Enter Room ID"
+                  className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 
                           text-gray-700 placeholder:text-gray-400
                           focus:ring-4 focus:ring-blue-100 focus:border-blue-500 
                           focus:outline-none transition-all duration-200
                           hover:border-gray-300"
-               />
-             </div>
-   
-             <div className="space-y-1">
-               <input
-                 type="text"
-                 value={resumeLink}
-                 onChange={(e) => setResumeLink(e.target.value)}
-                 placeholder="Enter Resume Drive Link"
-                 className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 
+                />
+              </div>
+
+              <div className="space-y-1">
+                <input
+                  type="text"
+                  value={resumeLink}
+                  onChange={(e) => setResumeLink(e.target.value)}
+                  placeholder="Enter Resume Drive Link"
+                  className="w-full px-4 py-3.5 rounded-xl border-2 border-gray-200 
                           text-gray-700 placeholder:text-gray-400
                           focus:ring-4 focus:ring-blue-100 focus:border-blue-500 
                           focus:outline-none transition-all duration-200
                           hover:border-gray-300"
-               />
-             </div>
-   
-             <button
-               onClick={startSendingVideo}
-               className="w-full mt-2 bg-gradient-to-r from-blue-500 to-blue-600 
+                />
+              </div>
+
+              <button
+                onClick={startSendingVideo}
+                className="w-full mt-2 bg-gradient-to-r from-blue-500 to-blue-600 
                         text-white py-3.5 rounded-xl font-semibold text-lg
                         shadow-lg shadow-blue-500/30
                         hover:from-blue-600 hover:to-blue-700
@@ -314,76 +318,18 @@ const Candidate = () => {
                         focus:ring-4 focus:ring-blue-100 focus:outline-none
                         transform transition-all duration-200
                         hover:-translate-y-0.5 active:translate-y-0"
-             >
-               Join Room
-             </button>
-           </div>
-         </div>
-       </div>
-      
-      )}
-
-      {roomId && (
-        <div className="space-y-4">
-          <div className="flex flex-row justify-evenly items-center border p-5 rounded-lg shadow-lg bg-white">
-            {/* Remote Video */}
-            <div className="flex flex-col items-center bg-white p-2 rounded-lg shadow-md mx-4">
-              <div className="relative w-96 h-56">
-                <video
-                  autoPlay
-                  muted
-                  ref={vRef}
-                  className="w-full h-full object-fill rounded-lg shadow-md"
-                />
-                <audio ref={aRef} autoPlay />
-              </div>
-            </div>
-
-            {/* Local Video */}
-            <div className="relative flex flex-col items-center bg-white p-2 rounded-lg shadow-lg mx-4">
-              <div className="relative w-96 h-56">
-                <video
-                  autoPlay
-                  muted
-                  ref={localVideoRef}
-                  className="w-full h-full object-fill rounded-lg shadow-md"
-                />
-                <div className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2">
-                  <Image
-                    src={videoP ? "/video.png" : "/video-off.png"}
-                    alt={videoP ? "video" : "video-off"}
-                    width={32}
-                    height={32}
-                    onClick={toggleVideo}
-                    className="p-1 rounded-full shadow-lg bg-white cursor-pointer"
-                  />
-                </div>
-                <div className="absolute top-1/2 -right-8 transform translate-x-1/2 -translate-y-1/2">
-                  <Image
-                    src={audioP ? "/mic.png" : "/mic-off.png"}
-                    alt={audioP ? "mic" : "mic-off"}
-                    width={32}
-                    height={32}
-                    onClick={toggleAudio}
-                    className="p-1 rounded-full shadow-lg bg-white cursor-pointer"
-                  />
-                </div>
-                <div className="absolute bottom-0 right-0 transform translate-x-1/2 translate-y-1/2">
-                  <Image
-                    src="/phone.png"
-                    alt="hang-up"
-                    width={32}
-                    height={32}
-                    onClick={handleHangUp}
-                    className="p-1 rounded-full shadow-lg bg-white cursor-pointer"
-                  />
-                </div>
-              </div>
+              >
+                Join Room
+              </button>
             </div>
           </div>
-
-          <div className="flex flex-row border p-5 rounded-lg shadow-lg bg-white">
-            <div className="w-2/3 h-[300px] rounded-lg p-2 mx-2 border bg-[#38298b] text-white">
+        </div>
+      )}
+      {/*Editor and video component*/}
+      {roomId && (
+        <div className="flex-grow flex space-x-4 h-full w-full">
+          <div className="h-auto w-2/3">
+            <div className="flex flex-col rounded-lg p-2 border bg-blue-700 text-white">
               <div className="flex justify-between mb-2">
                 <select
                   value={language}
@@ -408,11 +354,13 @@ const Candidate = () => {
                   ))}
                 </select>
               </div>
-              <div className="h-[240px] overflow-hidden rounded-lg">
+              {/* Editor */}
+              <div className="h-[450px] overflow-hidden rounded-lg">
                 <Editor
                   language={language}
                   onChange={onChangeHandler}
                   theme={theme}
+                  height="100%"
                   options={{
                     selectionClipboard: false,
                     autoClosingBrackets: "always",
@@ -421,12 +369,66 @@ const Candidate = () => {
                 />
               </div>
             </div>
-            <div className="w-1/3 h-[300px] border rounded-lg p-3 shadow-md">
-              <div className="flex flex-col h-full">
-                <Chat socket={socket} roomId={roomId} role="sender" />
+            <div className="flex flex-row justify-center items-center gap-10 pt-3">
+              <button
+                onClick={toggleVideo}
+                className="ring-1 hover:bg-blue-100 rounded-full p-3 shadow-lg flex items-center justify-center"
+              >
+                {videoP ? <Video color="blue" /> : <VideoOff color="blue" />}
+              </button>
+
+              <button
+                onClick={toggleAudio}
+                className="ring-1 hover:bg-blue-100 rounded-full p-3 shadow-lg flex items-center justify-center"
+              >
+                {audioP ? <Mic color="blue" /> : <MicOff color="blue" />}
+              </button>
+
+              <button
+                onClick={handleHangUp}
+                className="bg-red-500 hover:bg-red-600 rounded-full p-3 shadow-xl flex items-center justify-center"
+              >
+                <Phone color="white" />
+              </button>
+            </div>
+          </div>
+
+          {/* Remote Video and Chat */}
+          <div className="flex flex-col justify-evenly items-center space-y-10 p-5 rounded-lg w-1/3">
+            {/* Remote Video */}
+            <div className="flex flex-col items-center w-full">
+              {/* TODO:Add name */}
+              <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden border-2 border-blue-600 shadow-lg">
+                <video
+                  autoPlay
+                  ref={vRef}
+                  className="w-full h-full object-cover"
+                />
+                <audio ref={aRef} autoPlay />
+                <div className="absolute top-3 left-3 bg-black/30 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+                  <div className="inline-block h-2 w-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
+                  Connected
+                </div>
+              </div>
+            </div>
+
+            {/* Local Video */}
+            <div className="flex flex-col items-center w-full">
+              <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden border-2 border-white shadow-lg">
+                <video
+                  autoPlay
+                  muted
+                  ref={localVideoRef}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-3 left-3 bg-black/30 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+                  You
+                </div>
               </div>
             </div>
           </div>
+
+          <Chat socket={socket} roomId={roomId} role="sender" />
         </div>
       )}
     </div>
