@@ -6,7 +6,7 @@ import Editor from "@monaco-editor/react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Chat from "@/components/Chat";
-import { Mic, MicOff, Phone, Video, VideoOff } from "lucide-react";
+import { Mic, MicOff, Moon, Phone, Sun, Video, VideoOff } from "lucide-react";
 
 interface Language {
   label: string;
@@ -329,12 +329,12 @@ const Candidate = () => {
       {roomId && (
         <div className="flex-grow flex space-x-4 h-full w-full">
           <div className="h-auto w-2/3">
-            <div className="flex flex-col rounded-lg p-2 border bg-blue-700 text-white">
+            <div className="flex flex-col rounded-lg p-2 ring-1 text-white">
               <div className="flex justify-between mb-2">
                 <select
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="border bg-white text-black rounded p-1"
+                  className="ring-1 bg-white text-black rounded p-1"
                 >
                   {languages.map((lang) => (
                     <option key={lang.value} value={lang.value}>
@@ -342,18 +342,29 @@ const Candidate = () => {
                     </option>
                   ))}
                 </select>
-                <select
-                  value={theme}
-                  onChange={(e) => setTheme(e.target.value)}
-                  className="border bg-white text-black rounded p-1"
-                >
+
+                <div className="flex rounded-full px-1 justify-center items-center bg-gray-500/15 p-1 relative w-16">
+                  <div
+                    className={`absolute w-1/2 h-full bg-yellow-500 rounded-full transition-transform duration-300 ease-in-out ${
+                      theme === "light" ? "-translate-x-4" : "translate-x-4 bg-violet-600"
+                    }`}
+                  />
                   {themes.map((themeOption) => (
-                    <option key={themeOption.value} value={themeOption.value}>
-                      {themeOption.label}
-                    </option>
+                    <button
+                      className="relative flex-1 px-1"
+                      key={themeOption.value}
+                      onClick={() => setTheme(themeOption.value)}
+                    >
+                      {themeOption.label === "Light" ? (
+                        <Sun color="black" />
+                      ) : (
+                        <Moon color={`${theme==='light'?'black':'white'}`} />
+                      )}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
+
               {/* Editor */}
               <div className="h-[450px] overflow-hidden rounded-lg">
                 <Editor

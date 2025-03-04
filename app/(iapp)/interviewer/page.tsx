@@ -407,7 +407,7 @@ const Interviewer = () => {
       }
 
       {roomId && (
-        <>
+        <div className="w-full">
           {/* <p>Room Id: {roomId}</p> */}
           <div className="flex justify-center items-center mt-4 space-x-2">
             {!isRecording ? (
@@ -504,6 +504,7 @@ const Interviewer = () => {
             
           </div>
           {/* code editor and chat */}
+          
           <div className="flex flex-row border p-5 rounded-lg shadow-lg bg-white mt-1">
             <div className="w-2/3 h-[290px] rounded-lg p-2 mx-2 border bg-[#38298b] text-white">
               <Editor
@@ -517,13 +518,11 @@ const Interviewer = () => {
                 }}
               />
             </div>
-            <div className="w-1/3 h-[290px] border rounded-lg p-3  shadow-md">
-              <div className="flex flex-col h-full">
-                <Chat socket={socket} roomId={roomId} role="receiver" />
-              </div>
-            </div>
+           
+      
+          <Chat socket={socket} roomId={roomId} role="receiver" />        
           </div>
-        </>
+        </div>
       )}
     </div>
   );
