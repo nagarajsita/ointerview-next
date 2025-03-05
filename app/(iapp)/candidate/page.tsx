@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Editor from "@monaco-editor/react";
 import { toast, ToastContainer } from "react-toastify";
@@ -345,8 +345,8 @@ const Candidate = () => {
 
                 <div className="flex rounded-full px-1 justify-center items-center bg-gray-500/15 p-1 relative w-16">
                   <div
-                    className={`absolute w-1/2 h-full bg-yellow-500 rounded-full transition-transform duration-300 ease-in-out ${
-                      theme === "light" ? "-translate-x-4" : "translate-x-4 bg-violet-600"
+                    className={`absolute w-1/2 h-full rounded-full transition-transform duration-300 ease-in-out ${
+                      theme === "vs-dark" ? "translate-x-4 bg-violet-600": "-translate-x-4 bg-yellow-500"
                     }`}
                   />
                   {themes.map((themeOption) => (

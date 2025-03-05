@@ -1,22 +1,20 @@
-'use client'
+"use client";
 import { useEffect, useRef, useState } from "react";
-import hang from "@/public/phone.png";
-import mic from "@/public/mic.png";
-import micC from "@/public/mic-off.png";
-
-import video from "@/public/video.png";
-import videoC from "@/public/video-off.png";
-
-import record from "@/public/record.svg";
-import recording from "@/public/rec-button.svg";
-
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Editor from "@monaco-editor/react";
 import Chat from "@/components/Chat";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { FileUserIcon } from "lucide-react";
+
+import {
+  Disc,
+  FileUser,
+  Mic,
+  MicOff,
+  Phone,
+  Video,
+  VideoOff,
+} from "lucide-react";
 import { ResumeViewer } from "@/components/ResumeViewer";
 
 const Interviewer = () => {
@@ -104,7 +102,7 @@ const Interviewer = () => {
       {
         autoClose: false,
         closeButton: false,
-        position: "top-center"
+        position: "top-center",
       }
     );
   };
@@ -115,7 +113,7 @@ const Interviewer = () => {
         JSON.stringify({
           type: "terminateRoom",
           roomId,
-          role: "receiver"
+          role: "receiver",
         })
       );
     }
@@ -126,11 +124,11 @@ const Interviewer = () => {
     toast.success("Interview session ended successfully");
 
     setRoomId("");
-    pcRef.current?.close()
-    pcRef.current=null;
-    vRef.current=null
-    localVideoRef.current=null
-    router.push("/"); 
+    pcRef.current?.close();
+    pcRef.current = null;
+    vRef.current = null;
+    localVideoRef.current = null;
+    router.push("/");
   };
 
   useEffect(() => {
@@ -157,7 +155,7 @@ const Interviewer = () => {
               JSON.stringify({
                 type: "iceCandidate",
                 roomId,
-                candidate: event.candidate
+                candidate: event.candidate,
               })
             );
           }
@@ -177,7 +175,7 @@ const Interviewer = () => {
 
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
-          video: true
+          video: true,
         });
         if (pc) {
           stream.getTracks().forEach((track) => pc.addTrack(track, stream));
@@ -194,7 +192,7 @@ const Interviewer = () => {
           JSON.stringify({
             type: "createAnswer",
             roomId,
-            sdp: pc.localDescription
+            sdp: pc.localDescription,
           })
         );
       } else if (message.type === "iceCandidate" && pcRef) {
@@ -203,8 +201,8 @@ const Interviewer = () => {
         }
       } else if (message.type === "editorContent") {
         setValue(message.content);
-      } else if (message.type === "participantLeft"){
-        toast.warn("Candidate left the meeting")
+      } else if (message.type === "participantLeft") {
+        toast.warn("Candidate left the meeting");
       }
     };
     return () => {
@@ -261,7 +259,7 @@ const Interviewer = () => {
     } else {
       toast.error("No resume link available");
     }
-  }
+  };
   const cleanupRecording = () => {
     if (mediaStreamsRef.current) {
       mediaStreamsRef.current.forEach((stream) => {
@@ -275,19 +273,19 @@ const Interviewer = () => {
     try {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: {
-          displaySurface: "browser", 
-          frameRate: 30
+          displaySurface: "browser",
+          frameRate: 30,
         },
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          sampleRate: 44100
-        }
+          sampleRate: 44100,
+        },
       });
       // microphone access
       const micStream = await navigator.mediaDevices.getUserMedia({
         audio: true,
-        video: false
+        video: false,
       });
       // remote participant's audio
       let remoteAudioTrack = null;
@@ -304,13 +302,13 @@ const Interviewer = () => {
       // Combine
       const combinedStream = new MediaStream([
         ...screenStream.getVideoTracks(),
-        ...(remoteAudioTrack ? [remoteAudioTrack] : [])
+        ...(remoteAudioTrack ? [remoteAudioTrack] : []),
       ]);
 
       const recorder = new MediaRecorder(combinedStream, {
         mimeType: "video/webm;codecs=vp8,opus",
         videoBitsPerSecond: 3000000, // 3 Mbps
-        audioBitsPerSecond: 128000 // 128 kbps
+        audioBitsPerSecond: 128000, // 128 kbps
       });
 
       const chunks: BlobPart[] = [];
@@ -375,7 +373,7 @@ const Interviewer = () => {
   }, []);
 
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto flex flex-col">
       <ToastContainer position="top-right" />
       {isModalOpen && (
         <div className="fixed inset-0 bg-blue-100 bg-opacity-50 flex items-center justify-center">
@@ -399,128 +397,118 @@ const Interviewer = () => {
           </div>
         </div>
       )}
-      
-      {
-        isModalOpen2 && (
-          <ResumeViewer isOpen={isModalOpen2} onClose={() => setIsModalOpen2(false)} resumeLink={resumeLink}/>
-        )
-      }
+
+      {isModalOpen2 && (
+        <ResumeViewer
+          isOpen={isModalOpen2}
+          onClose={() => setIsModalOpen2(false)}
+          resumeLink={resumeLink}
+        />
+      )}
 
       {roomId && (
-        <div className="w-full">
+        <div className="flex-grow flex space-x-4 h-full w-full">
           {/* <p>Room Id: {roomId}</p> */}
-          <div className="flex justify-center items-center mt-4 space-x-2">
-            {!isRecording ? (
-              <Image
-                src={record}
-                alt="Start Screen Recording"
-                className="w-10 h-10 cursor-pointer"
-                onClick={startScreenRecording}
-              />
-            ) : (
-              <Image
-                src={recording}
-                alt="Stop Recording"
-                className="w-10 h-10 cursor-pointer"
-                onClick={stopRecording}
-              />
-            )}
-            {resumeLink && <div>
-              <button onClick={viewResume}>
-              <FileUserIcon/>
-              </button>
-            </div>}
-          </div>
-
-          <div className="flex flex-row justify-evenly items-center border p-5 rounded-lg shadow-lg">
-            {/* Remote Video */}
-            <div className="flex flex-col items-center bg-white p-2 rounded-full shadow-md mx-4">
-              <div className="relative w-32 h-32">
-                <video
-                  autoPlay
-                  ref={vRef}
-                  className="w-full h-full object-cover rounded-full shadow-md"
-                />
-                <audio ref={aRef} autoPlay />
-              </div>
-            </div>
-
-            {/* Local Video */}
-            <div className="relative flex flex-col items-center bg-white p-2 rounded-full shadow-lg mx-4">
-              <div className="relative w-32 h-32">
-                <video
-                  autoPlay
-                  muted
-                  ref={localVideoRef}
-                  className="w-full h-full object-cover rounded-full shadow-md"
-                />
-
-                {/* Floating Icons */}
-                <div className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 ">
-                  {videoP ? (
-                    <Image
-                      src={video}
-                      alt="video"
-                      onClick={toggleVideo}
-                      className="w-8 h-8 p-1 rounded-full shadow-lg bg-white"
-                    />
-                  ) : (
-                    <Image
-                      src={videoC}
-                      alt="video-close"
-                      onClick={toggleVideo}
-                      className="w-8 h-8 p-1 rounded-full shadow-lg bg-white"
-                    />
-                  )}
-                </div>
-
-                <div className="absolute top-1/2 -right-8 transform translate-x-1/2 -translate-y-1/2 ">
-                  {audioP ? (
-                    <Image
-                      src={mic}
-                      alt="mic"
-                      onClick={toggleAudio}
-                      className="w-8 h-8 p-1 rounded-full shadow-lg bg-white"
-                    />
-                  ) : (
-                    <Image
-                      src={micC}
-                      alt="mic-off"
-                      onClick={toggleAudio}
-                      className="w-8 h-8 p-1 rounded-full shadow-lg bg-white"
-                    />
-                  )}
-                </div>
-                <div className="absolute bottom-0 right-0 transform translate-x-1/2 translate-y-1/2 ">
-                  <Image
-                    src={hang}
-                    alt="hang-up"
-                    className="w-8 h-8 p-1 rounded-full shadow-lg bg-white"
-                    onClick={handleHangUp}
-                  />
-                </div>
-              </div>
-            </div>
-            
-          </div>
-          {/* code editor and chat */}
-          
-          <div className="flex flex-row border p-5 rounded-lg shadow-lg bg-white mt-1">
-            <div className="w-2/3 h-[290px] rounded-lg p-2 mx-2 border bg-[#38298b] text-white">
+          <div className="flex flex-col w-1/3 rounded-lg">
+            <div className="h-[390px] ring-1 rounded-lg p-2 mx-2">
               <Editor
                 value={value}
-                theme="vs-dark"
+                theme="light"
                 className="h-full"
-                language="html"
                 options={{
                   readOnly: true,
-                  "semanticHighlighting.enabled": "configuredByTheme"
+                  "semanticHighlighting.enabled": "configuredByTheme",
+                  fontSize: 11.5,
+                  minimap:{enabled:false}
                 }}
               />
             </div>
-           
-      
-          <Chat socket={socket} roomId={roomId} role="receiver" />        
+            <div className="flex flex-row justify-center items-center gap-10 pt-3">
+              <button
+                onClick={toggleVideo}
+                className={`${
+                  isRecording ? "bg-red-600 animate-pulse" : ""
+                } hover:bg-red-200 ring-1 rounded-full p-3 shadow-lg flex items-center justify-center `}
+              >
+                {!isRecording ? (
+                  <Disc color="red" onClick={startScreenRecording} />
+                ) : (
+                  <Disc
+                    color="white"
+                    className="bg-red-600"
+                    onClick={stopRecording}
+                  />
+                )}
+              </button>
+              <button
+                onClick={toggleVideo}
+                className="ring-1 hover:bg-blue-100 rounded-full p-3 shadow-lg flex items-center justify-center"
+              >
+                {videoP ? <Video color="blue" /> : <VideoOff color="blue" />}
+              </button>
+
+              <button
+                onClick={toggleAudio}
+                className="ring-1 hover:bg-blue-100 rounded-full p-3 shadow-lg flex items-center justify-center"
+              >
+                {audioP ? <Mic color="blue" /> : <MicOff color="blue" />}
+              </button>
+
+              <button
+                onClick={handleHangUp}
+                className="bg-red-500 hover:bg-red-600 rounded-full p-3 shadow-xl flex items-center justify-center"
+              >
+                <Phone color="white" />
+              </button>
+            </div>
+          </div>
+
+          {/* Remote Video and Chat */}
+          <div className="flex w-2/3">
+
+            <div className="flex flex-col justify-center items-baseline space-y-10 rounded-lg w-2/6">
+              {/* Remote Video */}
+              <div className="flex flex-col items-center w-2/3">
+                {/* TODO:Add name */}
+                <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden border-2 border-blue-600 shadow-lg">
+                  <video
+                    autoPlay
+                    ref={vRef}
+                    className="w-full h-full object-cover"
+                  />
+                  <audio ref={aRef} autoPlay />
+                  <div className="absolute top-3 left-3 bg-black/30 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+                    <div className="inline-block h-2 w-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
+                    Connected
+                  </div>
+                </div>
+              </div>
+
+              {/* Local Video */}
+              <div className="flex flex-col items-center w-2/3">
+                <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden border-2 border-white shadow-lg">
+                  <video
+                    autoPlay
+                    muted
+                    ref={localVideoRef}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-3 left-3 bg-black/30 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full">
+                    You
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-flow-2 ring-1 w-4/6">
+              {resumeLink && (
+                <div>
+                  <button onClick={viewResume}>
+                    <FileUser />
+                  </button>
+                </div>
+              )}
+            </div>
+            <Chat socket={socket} roomId={roomId} role="receiver" />
           </div>
         </div>
       )}
