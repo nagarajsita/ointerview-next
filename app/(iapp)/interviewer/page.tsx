@@ -7,7 +7,7 @@ import Chat from "@/components/Chat";
 import { useRouter } from "next/navigation";
 
 import {
-  Disc,
+  Disc2,
   FileUser,
   Mic,
   MicOff,
@@ -16,6 +16,8 @@ import {
   VideoOff,
 } from "lucide-react";
 import { ResumeViewer } from "@/components/ResumeViewer";
+import ResumeAnalysis from "@/components/ResumeAnalysis";
+import InterviewerFeedbackForm from "@/components/InterviewerFeedbackForm";
 
 const Interviewer = () => {
   const vRef = useRef<HTMLVideoElement | null>(null);
@@ -424,51 +426,61 @@ const Interviewer = () => {
               />
             </div>
             <div className="flex flex-row justify-center items-center gap-10 pt-3">
-              <button
-                onClick={toggleVideo}
+             
+              <div
                 className={`${
                   isRecording ? "bg-red-600 animate-pulse" : ""
                 } hover:bg-red-200 ring-1 rounded-full p-3 shadow-lg flex items-center justify-center `}
-              >
+                title="Record"
+             >
                 {!isRecording ? (
-                  <Disc color="red" onClick={startScreenRecording} />
+                  <Disc2 color="red" onClick={startScreenRecording} /> 
                 ) : (
-                  <Disc
+                  <Disc2
                     color="white"
                     className="bg-red-600"
                     onClick={stopRecording}
                   />
                 )}
-              </button>
+              </div>
+
               <button
                 onClick={toggleVideo}
                 className="ring-1 hover:bg-blue-100 rounded-full p-3 shadow-lg flex items-center justify-center"
-              >
+                title={videoP ? "Video-on": "Video-off" }
+            >
                 {videoP ? <Video color="blue" /> : <VideoOff color="blue" />}
               </button>
 
               <button
                 onClick={toggleAudio}
                 className="ring-1 hover:bg-blue-100 rounded-full p-3 shadow-lg flex items-center justify-center"
-              >
+                title={audioP? "Audio-on": "Audio-off" }
+             >
                 {audioP ? <Mic color="blue" /> : <MicOff color="blue" />}
               </button>
 
               <button
                 onClick={handleHangUp}
                 className="bg-red-500 hover:bg-red-600 rounded-full p-3 shadow-xl flex items-center justify-center"
-              >
+                title={"hang-up"}
+             >
                 <Phone color="white" />
               </button>
+              {resumeLink && (
+                  <button onClick={viewResume} className="p-3 ring-1 rounded-full" title="View-Resume">
+                    <FileUser color="blue" />
+                  </button>
+              )}
             </div>
           </div>
 
           {/* Remote Video and Chat */}
-          <div className="flex w-2/3">
+          <div className="flex w-2/3 gap-5">
 
-            <div className="flex flex-col justify-center items-baseline space-y-10 rounded-lg w-2/6">
+            <div className="flex flex-col justify-evenly items-baseline rounded-lg w-2/6">
               {/* Remote Video */}
-              <div className="flex flex-col items-center w-2/3">
+              <div className="flex flex-col items-center w-full">
                 {/* TODO:Add name */}
                 <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden border-2 border-blue-600 shadow-lg">
                   <video
@@ -485,7 +497,7 @@ const Interviewer = () => {
               </div>
 
               {/* Local Video */}
-              <div className="flex flex-col items-center w-2/3">
+              <div className="flex flex-col items-center w-full">
                 <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden border-2 border-white shadow-lg">
                   <video
                     autoPlay
@@ -499,16 +511,19 @@ const Interviewer = () => {
                 </div>
               </div>
             </div>
-            <div className="grid grid-flow-2 ring-1 w-4/6">
-              {resumeLink && (
-                <div>
-                  <button onClick={viewResume}>
-                    <FileUser />
-                  </button>
-                </div>
-              )}
+
+            <div className="flex flex-row p-2 ring-1 rounded-lg w-4/6">
+              
+              {
+                resumeLink &&(
+                  <ResumeAnalysis resumeLink={resumeLink}/>
+                )
+              }
+
             </div>
             <Chat socket={socket} roomId={roomId} role="receiver" />
+           
+            <InterviewerFeedbackForm/>
           </div>
         </div>
       )}

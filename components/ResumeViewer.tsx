@@ -71,7 +71,8 @@ export const ResumeViewer = ({ resumeLink, isOpen, onClose }: ResumeProps) => {
               }}
               onLoad={() => setIsLoading(false)}
               allowFullScreen
-              sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+              
+              sandbox="allow-same-origin allow-scripts allow-popups allow-forms "
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-gray-500">
