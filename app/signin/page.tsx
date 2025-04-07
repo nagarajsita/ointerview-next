@@ -1,17 +1,16 @@
-'use client'
-import { signIn } from 'next-auth/react'
-import React from 'react'
 
-const SignIn = () => {
+import { signIn } from "@/auth"
+ 
+export default function SignIn() {
   return (
-    <div className='h-full flex justify-center items-center'>
-      <button className='justify-center items-center ring-2' onClick={async () => {
-        await signIn('google', { callbackUrl: '/dashboard' });
-        }}>
-        Login with Google 
-      </button>   
-    </div>
+    <form
+      action={async () => {
+        "use server"
+        await signIn("github",{redirectTo:'/dashboard'});
+      }}
+      className="w-full h-full flex"
+    >
+      <button type="submit"  className="w-full justify-center items-center">Signin with Github</button>
+    </form>
   )
-}
-
-export default SignIn;
+} 

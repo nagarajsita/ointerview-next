@@ -1,8 +1,18 @@
 import React from "react";
 import { Code, MessageSquare, Video } from "lucide-react";
 import { CallToActionButton } from "@/components/CallToActionButton";
+import { auth } from "@/auth";
+import { redirect} from "next/navigation";
 
-export default function Hero() {
+export default async function Hero() {
+  const sessionDet = await auth();
+
+  if (sessionDet) {
+    // Redirect to dashboard if session exists
+    redirect("/dashboard",);
+    return null; // Prevent rendering the Hero component
+  }
+
   return (
     <div className="flex flex-col justify-center items-center bg-gradient-radial from-blue-50 via-white to-blue-100 min-h-screen w-full relative overflow-hidden p-4">
       {/* Enhanced Background Decorations */}
@@ -11,7 +21,7 @@ export default function Hero() {
       <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-purple-300/20 blur-[60px] rounded-full animate-pulse delay-500" />
       
       <div className="absolute top-3 right-32 gap-4 z-20 hidden md:block">
-     <CallToActionButton/>
+        <CallToActionButton details={sessionDet} />
       </div>
 
       {/* Main Content Container */}
@@ -94,7 +104,7 @@ export default function Hero() {
 
       {/* Footer */}
       <footer className="absolute bottom-1 w-full text-center text-sm text-gray-600">
-        © {new Date().getFullYear()}{" "}
+        &copy; {new Date().getFullYear()}{" "}
         <span className="font-semibold text-gray-700">OInterview</span>. All
         rights reserved.
       </footer>

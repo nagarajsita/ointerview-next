@@ -4,7 +4,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Editor from "@monaco-editor/react";
 import Chat from "@/components/Chat";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import {
   Disc2,
@@ -18,17 +18,19 @@ import {
 import { ResumeViewer } from "@/components/ResumeViewer";
 import ResumeAnalysis from "@/components/ResumeAnalysis";
 import InterviewerFeedbackForm from "@/components/InterviewerFeedbackForm";
+import { getUserDets } from "@/lib/actions";
 
 const Interviewer = () => {
+  const params = useParams();
+  const roomId = params.id as string;
+
   const vRef = useRef<HTMLVideoElement | null>(null);
   const aRef = useRef<HTMLAudioElement | null>(null);
   const localVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [roomId, setRoomId] = useState<string>("");
   const [resumeLink, setResumeLink] = useState<string>("");
 
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(true);
   const [isModalOpen2, setIsModalOpen2] = useState<boolean>(false);
   const [value, setValue] = useState("");
   const [audioP, setAudioP] = useState<boolean>(true);
@@ -39,36 +41,45 @@ const Interviewer = () => {
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const router = useRouter();
 
+  const [candidateDetails, setCandidateDetails] = useState(null);
+
+  useEffect(() => {
+    if (!roomId) return;
+    const fetchData = async () => {
+      try {
+        const data = await getUserDets(roomId);
+        setCandidateDetails(data);
+      } catch (error) {
+        console.error("Failed to fetch candidate details:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
   //cleanup funcyion for connections
   const cleanupConnection = () => {
-    // Stop all tracks from local stream
     if (localVideoRef.current?.srcObject instanceof MediaStream) {
       localVideoRef.current.srcObject
         .getTracks()
         .forEach((track) => track.stop());
     }
-    // Stop all tracks from remote stream
     if (vRef.current?.srcObject instanceof MediaStream) {
       vRef.current.srcObject.getTracks().forEach((track) => track.stop());
     }
     if (aRef.current?.srcObject instanceof MediaStream) {
       aRef.current.srcObject.getTracks().forEach((track) => track.stop());
     }
-    // Close peer connection
     if (pcRef.current) {
       pcRef.current.close();
       pcRef.current = null;
     }
-    // Stop recording if active
     if (
       screenRecorderRef.current &&
       screenRecorderRef.current.state === "recording"
     ) {
       stopRecording();
     }
-    // Clean up media streams
     cleanupRecording();
-    // Clear references
     localVideoRef.current = null;
     vRef.current = null;
     aRef.current = null;
@@ -110,6 +121,7 @@ const Interviewer = () => {
   };
 
   const confirmHangUp = () => {
+    
     if (socket) {
       socket.send(
         JSON.stringify({
@@ -125,7 +137,6 @@ const Interviewer = () => {
     }
     toast.success("Interview session ended successfully");
 
-    setRoomId("");
     pcRef.current?.close();
     pcRef.current = null;
     vRef.current = null;
@@ -211,24 +222,6 @@ const Interviewer = () => {
       socket.close();
     };
   }, [roomId]);
-
-  const handleCreateRoom = () => {
-    setIsModalOpen(false);
-  };
-
-  const generateRandomRoomId = () => {
-    const randomString = Math.random().toString(36).substring(2, 10);
-    setRoomId(randomString);
-    navigator.clipboard
-      .writeText(randomString)
-      .then(() => {
-        toast.success("Room ID copied to clipboard!");
-        handleCreateRoom();
-      })
-      .catch((err) => {
-        console.error("Failed to copy: ", err);
-      });
-  };
 
   const toggleVideo = () => {
     if (pcRef.current && pcRef.current.getSenders()) {
@@ -377,28 +370,6 @@ const Interviewer = () => {
   return (
     <div className="container mx-auto flex flex-col">
       <ToastContainer position="top-right" />
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-blue-100 bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg">
-            <h2 className="text-xl font-bold mb-4">Create a Room</h2>
-            <div className="flex mb-4 px-20">
-              {/* <input
-                type="text"
-                value={roomId}
-                onChange={(e) => setRoomId(e.target.value)}
-                placeholder="Enter Room ID"
-                className="border p-2 flex-grow mr-2"
-              /> */}
-              <button
-                onClick={generateRandomRoomId}
-                className="bg-green-500 text-white px-10 py-2 rounded"
-              >
-                Generate ID
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {isModalOpen2 && (
         <ResumeViewer
@@ -421,20 +392,19 @@ const Interviewer = () => {
                   readOnly: true,
                   "semanticHighlighting.enabled": "configuredByTheme",
                   fontSize: 11.5,
-                  minimap:{enabled:false}
+                  minimap: { enabled: false },
                 }}
               />
             </div>
             <div className="flex flex-row justify-center items-center gap-10 pt-3">
-             
               <div
                 className={`${
                   isRecording ? "bg-red-600 animate-pulse" : ""
                 } hover:bg-red-200 ring-1 rounded-full p-3 shadow-lg flex items-center justify-center `}
                 title="Record"
-             >
+              >
                 {!isRecording ? (
-                  <Disc2 color="red" onClick={startScreenRecording} /> 
+                  <Disc2 color="red" onClick={startScreenRecording} />
                 ) : (
                   <Disc2
                     color="white"
@@ -447,16 +417,16 @@ const Interviewer = () => {
               <button
                 onClick={toggleVideo}
                 className="ring-1 hover:bg-blue-100 rounded-full p-3 shadow-lg flex items-center justify-center"
-                title={videoP ? "Video-on": "Video-off" }
-            >
+                title={videoP ? "Video-on" : "Video-off"}
+              >
                 {videoP ? <Video color="blue" /> : <VideoOff color="blue" />}
               </button>
 
               <button
                 onClick={toggleAudio}
                 className="ring-1 hover:bg-blue-100 rounded-full p-3 shadow-lg flex items-center justify-center"
-                title={audioP? "Audio-on": "Audio-off" }
-             >
+                title={audioP ? "Audio-on" : "Audio-off"}
+              >
                 {audioP ? <Mic color="blue" /> : <MicOff color="blue" />}
               </button>
 
@@ -464,20 +434,23 @@ const Interviewer = () => {
                 onClick={handleHangUp}
                 className="bg-red-500 hover:bg-red-600 rounded-full p-3 shadow-xl flex items-center justify-center"
                 title={"hang-up"}
-             >
+              >
                 <Phone color="white" />
               </button>
               {resumeLink && (
-                  <button onClick={viewResume} className="p-3 ring-1 rounded-full" title="View-Resume">
-                    <FileUser color="blue" />
-                  </button>
+                <button
+                  onClick={viewResume}
+                  className="p-3 ring-1 rounded-full"
+                  title="View-Resume"
+                >
+                  <FileUser color="blue" />
+                </button>
               )}
             </div>
           </div>
 
           {/* Remote Video and Chat */}
           <div className="flex w-2/3 gap-5">
-
             <div className="flex flex-col justify-evenly items-baseline rounded-lg w-2/6">
               {/* Remote Video */}
               <div className="flex flex-col items-center w-full">
@@ -513,17 +486,16 @@ const Interviewer = () => {
             </div>
 
             <div className="flex flex-row p-2 ring-1 rounded-lg w-4/6">
-              
-              {
-                resumeLink &&(
-                  <ResumeAnalysis resumeLink={resumeLink}/>
-                )
-              }
-
+              {resumeLink && <ResumeAnalysis resumeLink={resumeLink} />}
             </div>
             <Chat socket={socket} roomId={roomId} role="receiver" />
-           
-            <InterviewerFeedbackForm/>
+
+            {candidateDetails && resumeLink && (
+              <InterviewerFeedbackForm
+                candidateDets={candidateDetails}
+                resumeLink={resumeLink}
+              />
+            )}
           </div>
         </div>
       )}

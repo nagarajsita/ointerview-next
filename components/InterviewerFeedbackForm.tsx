@@ -1,39 +1,45 @@
 import { CircleX, ListRestart, Save } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import FeedbackPDF from "./FeedbackPDF";
+import { writeClient } from "@/sanity/lib/write-client";
+import { updateCandidateResume } from "@/lib/actions";
 
-const InterviewerFeedbackForm = () => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const InterviewerFeedbackForm = ({candidateDets,resumeLink}:any) => {
   // Initialize state from localStorage or use default initial state
+  console.log(candidateDets);
+  console.log(resumeLink);
+
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [open,setOpen]=useState(false);
   const [formData, setFormData] = useState(() => {
-    const savedData = localStorage.getItem("interviewFeedbackData");
-    if (savedData) {
-      try {
-        return JSON.parse(savedData);
-      } catch (e) {
-        console.error("Error parsing saved form data:", e);
-        return getInitialState();
+    if (typeof window !== "undefined") {
+      const savedData = localStorage.getItem("interviewFeedbackData");
+      if (savedData) {
+        try {
+          return JSON.parse(savedData);
+        } catch (e) {
+          console.error("Error parsing saved form data:", e);
+        }
       }
     }
     return getInitialState();
   });
 
-  // Save to localStorage whenever formData changes
   useEffect(() => {
-    localStorage.setItem("interviewFeedbackData", JSON.stringify(formData));
-  }, [formData]);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("interviewFeedbackData", JSON.stringify(formData));
+    }
+  }, [formData]);  
+
 
   // Function to get initial state
   function getInitialState() {
     return {
-      interviewerName: "",
-      candidateName: "",
+      candidateName: candidateDets?.name ,
       positionAppliedFor: "",
-      interviewDate: "",
-      interviewFormat: "",
-      interviewDuration: "",
+      interviewDate: candidateDets?.date_time,
 
       // Technical Skills
       technicalSkills: {
@@ -194,14 +200,23 @@ const InterviewerFeedbackForm = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Form submitted:", formData);
     // Here you would typically send the data to your backend
     // For example: axios.post('/api/interview-feedback', formData)
     // Optional: Clear localStorage after successful submission
+    try {
+        await updateCandidateResume(candidateDets._id,resumeLink)
+    } catch (error) {
+      console.error('Failed to update document:', error);
+      // Handle the error appropriately (e.g., show an error message to the user)
+    } finally {
+      setIsSubmitted(true);
+    }
+    
     localStorage.removeItem("interviewFeedbackData");
-    setIsSubmitted(true);
+
     // setFormData(getInitialState());
     
   };
@@ -291,87 +306,39 @@ const InterviewerFeedbackForm = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block mb-1 font-medium">
-                  Interviewer Name
-                </label>
-                <input
-                  type="text"
-                  name="interviewerName"
-                  value={formData.interviewerName}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
-                  required
-                />
-              </div>
-
-              <div>
                 <label className="block mb-1 font-medium">Candidate Name</label>
                 <input
                   type="text"
                   name="candidateName"
-                  value={formData.candidateName}
+                  value={candidateDets.name}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
                   required
+                  readOnly
                 />
               </div>
-
               <div>
-                <label className="block mb-1 font-medium">
-                  Position Applied For
-                </label>
+                <label className="block mb-1 font-medium">Candiate email</label>
                 <input
-                  type="text"
-                  name="positionAppliedFor"
-                  value={formData.positionAppliedFor}
+                  type="string"
+                  name="interviewDate"
+                  value={candidateDets.email}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
                   required
+                  readOnly
                 />
               </div>
-
               <div>
                 <label className="block mb-1 font-medium">Interview Date</label>
                 <input
-                  type="date"
+                  type="string"
                   name="interviewDate"
-                  value={formData.interviewDate}
+                  value={candidateDets.date_time}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded"
                   required
-                />
-              </div>
-
-              <div>
-                <label className="block mb-1 font-medium">
-                  Interview Format
-                </label>
-                <select
-                  name="interviewFormat"
-                  value={formData.interviewFormat}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
-                  required
-                >
-                  <option value="">Select Format</option>
-                  <option value="In-person">In-person</option>
-                  <option value="Video">Video</option>
-                  <option value="Phone">Phone</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block mb-1 font-medium">
-                  Interview Duration
-                </label>
-                <input
-                  type="text"
-                  name="interviewDuration"
-                  value={formData.interviewDuration}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
-                  placeholder="e.g. 45 minutes"
-                  required
+                  readOnly
                 />
               </div>
             </div>
@@ -1156,7 +1123,7 @@ const InterviewerFeedbackForm = () => {
     if(!open){
    return(
    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <FeedbackPDF data={formData} isOpen={setOpen}/>
+      <FeedbackPDF data={formData} isOpen={setOpen} doc_id={candidateDets._id}/>
     </div>)}
   }
 };

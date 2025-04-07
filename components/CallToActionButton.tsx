@@ -1,24 +1,30 @@
-'use client'
-import {  ArrowRight } from 'lucide-react';
-import { useRouter } from 'next/navigation'
-import React from 'react'
-export const CallToActionButton = () => {
-    const router=useRouter();
+"use client";
 
+import Image from "next/image";
+import React from "react";
+import { signIn, signOut } from "next-auth/react";
+import { Session } from "next-auth";
+
+export const CallToActionButton = ({ details }: { details: Session | null }) => {
   return (
     <div>
-         <button 
-          onClick={() =>{router.push("/dashboard")}}
-          className="inline-flex text-[14px]  h-10 items-center justify-center px-4 font-medium text-blue-500 hover:text-blue-700 focus:animate-ping"
-        > 
-          See Demo <ArrowRight className='size-3'/>
-        </button>
-        <button 
-          onClick={() => window.location.href = '/signin'}
+      {!details ? (
+        <button
+          onClick={() => signIn()}
           className="inline-flex text-[14px] h-10 items-center justify-center px-4 font-medium text-blue-500 hover:text-blue-700 focus:animate-ping"
         >
           Sign In
         </button>
+      ) : (
+        <Image
+          src={details.user?.image || "/default.png"} // fallback if image is null
+          alt="User"
+          width={30}
+          height={30}
+          onClick={() => signOut({redirectTo:"/"})}
+          className="rounded-full cursor-pointer"
+        />
+      )}
     </div>
-  )
-}
+  );
+};

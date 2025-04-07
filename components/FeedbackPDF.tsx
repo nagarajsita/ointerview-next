@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Page,
   Text,
@@ -8,8 +8,10 @@ import {
   PDFDownloadLink,
   Image,
   Font,
+  pdf,
 } from "@react-pdf/renderer";
 import { X } from "lucide-react";
+import { updateInterviewDocument, uploadPDFToSanity } from "@/lib/actions";
 
 // Register custom fonts for a more professional look
 Font.register({
@@ -275,16 +277,16 @@ const SkillEvaluation = ({ title, skills, color = "#2563EB" }) => (
                   value.rating >= 4
                     ? "#059669"
                     : value.rating >= 3
-                    ? "#D97706"
-                    : "#DC2626",
+                      ? "#D97706"
+                      : "#DC2626",
               },
             ]}
           >
             {value.rating >= 4
               ? "Strong"
               : value.rating >= 3
-              ? "Adequate"
-              : "Needs Work"}
+                ? "Adequate"
+                : "Needs Work"}
           </Text>
         </View>
         <StarRating rating={value.rating} />
@@ -322,10 +324,8 @@ const PDFDocument = ({ data }) => (
       <View style={styles.summaryBox}>
         <Text style={styles.summaryText}>
           This report summarizes the interview assessment for{" "}
-          {data.candidateName} for the {data.positionAppliedFor} position,
-          conducted on {formatDate(data.interviewDate)} by{" "}
-          {data.interviewerName}. The overall recommendation is:{" "}
-          {data.recommendation}.
+          {data.candidateName} , conducted on {formatDate(data.interviewDate)}
+          {". "} The overall recommendation is: {data.recommendation}.
         </Text>
       </View>
 
@@ -341,32 +341,8 @@ const PDFDocument = ({ data }) => (
           </View>
           <View style={styles.candidateInfoItem}>
             <Text style={styles.text}>
-              <Text style={styles.highlight}>Position:</Text>{" "}
-              {data.positionAppliedFor}
-            </Text>
-          </View>
-          <View style={styles.candidateInfoItem}>
-            <Text style={styles.text}>
-              <Text style={styles.highlight}>Interviewer:</Text>{" "}
-              {data.interviewerName}
-            </Text>
-          </View>
-          <View style={styles.candidateInfoItem}>
-            <Text style={styles.text}>
               <Text style={styles.highlight}>Date:</Text>{" "}
               {formatDate(data.interviewDate)}
-            </Text>
-          </View>
-          <View style={styles.candidateInfoItem}>
-            <Text style={styles.text}>
-              <Text style={styles.highlight}>Format:</Text>{" "}
-              {data.interviewFormat}
-            </Text>
-          </View>
-          <View style={styles.candidateInfoItem}>
-            <Text style={styles.text}>
-              <Text style={styles.highlight}>Duration:</Text>{" "}
-              {data.interviewDuration}
             </Text>
           </View>
         </View>
@@ -431,8 +407,8 @@ const PDFDocument = ({ data }) => (
                 .includes("hire")
                 ? "#ECFDF5"
                 : data.recommendation.toLowerCase().includes("reject")
-                ? "#FEF2F2"
-                : "#FEF3C7",
+                  ? "#FEF2F2"
+                  : "#FEF3C7",
             },
           ]}
         >
@@ -460,10 +436,53 @@ const PDFDocument = ({ data }) => (
   </Document>
 );
 
+const generatePDFBlob = async (data) => {
+  const blob = await pdf(<PDFDocument data={data} />).toBlob();
+  return blob;
+};
+
+const handleGenerateAndUploadPDF = async (data, docId) => {
+  try {
+    // Step 1: Generate PDF Blob
+    const pdfBlob = await generatePDFBlob(data);
+    // Step 2: Upload PDF to Sanity Assets
+    const pdfAsset = await uploadPDFToSanity(
+      pdfBlob,
+      `Interview_Feedback_${data.candidateName}.pdf`,
+      docId
+    );
+
+    console.log("Uploaded PDF:", pdfAsset);
+
+    // Step 3: Update Interview Document with Feedback File Reference
+
+    if (pdfAsset) {
+      console.log("Interview document updated successfully!");
+    }
+  } catch (error) {
+    console.error("Error generating or uploading PDF:", error);
+  }
+};
+
 // Component with Download Link
-const FeedbackPDF = ({data,isOpen}) => {
+const FeedbackPDF = ({ data, isOpen, doc_id }) => {
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const feedbackData = data;
-// console.log(feedbackData);
+  // Call handleGenerateAndUploadPDF if needed
+  const handleUploadAndGenerate = async () => {
+    setIsSaving(true);
+    setIsSaved(false);
+    try {
+      await handleGenerateAndUploadPDF(feedbackData, doc_id);
+      setIsSaved(true);
+    } catch (error) {
+      console.error("Error generating or uploading PDF:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="p-6 mx-auto bg-white rounded-lg shadow-lg border border-blue-100">
       <div className="flex items-center justify-center mb-6">
@@ -486,7 +505,6 @@ const FeedbackPDF = ({data,isOpen}) => {
         <h2 className="text-xl font-bold text-gray-800">
           Interview Feedback Generator
         </h2>
-       
       </div>
 
       <div className="bg-blue-50 p-4 rounded-md mb-6 border-l-4 border-blue-500">
@@ -496,14 +514,6 @@ const FeedbackPDF = ({data,isOpen}) => {
         <p className="text-sm text-blue-700 mb-1">
           <span className="font-medium">Name:</span>{" "}
           {feedbackData.candidateName}
-        </p>
-        <p className="text-sm text-blue-700 mb-1">
-          <span className="font-medium">Position:</span>{" "}
-          {feedbackData.positionAppliedFor}
-        </p>
-        <p className="text-sm text-blue-700">
-          <span className="font-medium">Interview Date:</span>{" "}
-          {formatDate(feedbackData.interviewDate)}
         </p>
       </div>
 
@@ -566,11 +576,21 @@ const FeedbackPDF = ({data,isOpen}) => {
           </span>
         )}
       </PDFDownloadLink>
+
       <button
-          className='mt-3 block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 shadow-md'
-          onClick={() => isOpen(true)}>
-           Return to Room
-          </button>
+        className="mt-3 block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 shadow-md"
+        onClick={handleUploadAndGenerate}
+        disabled={isSaving}
+      >
+        {isSaving ? "Saving..." : isSaved ? "Saved" : "Save"}
+      </button>
+
+      <button
+        className="mt-3 block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 shadow-md"
+        onClick={() => isOpen(true)}
+      >
+        Return to Room
+      </button>
 
       <p className="text-xs text-gray-500 mt-4 text-center">
         This document is confidential and for internal use only.
