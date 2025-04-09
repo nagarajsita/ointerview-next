@@ -10,8 +10,7 @@ import {
   Font,
   pdf,
 } from "@react-pdf/renderer";
-import { X } from "lucide-react";
-import { updateInterviewDocument, uploadPDFToSanity } from "@/lib/actions";
+import { uploadPDFToSanity } from "@/lib/actions";
 
 // Register custom fonts for a more professional look
 Font.register({

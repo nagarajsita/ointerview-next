@@ -1,31 +1,18 @@
 import { CircleX, ListRestart, Save } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import FeedbackPDF from "./FeedbackPDF";
-import { writeClient } from "@/sanity/lib/write-client";
 import { updateCandidateResume } from "@/lib/actions";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const InterviewerFeedbackForm = ({candidateDets,resumeLink}:any) => {
   // Initialize state from localStorage or use default initial state
-  console.log(candidateDets);
-  console.log(resumeLink);
+  // console.log(candidateDets);
+  // console.log(resumeLink);
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [open,setOpen]=useState(false);
-  const [formData, setFormData] = useState(() => {
-    if (typeof window !== "undefined") {
-      const savedData = localStorage.getItem("interviewFeedbackData");
-      if (savedData) {
-        try {
-          return JSON.parse(savedData);
-        } catch (e) {
-          console.error("Error parsing saved form data:", e);
-        }
-      }
-    }
-    return getInitialState();
-  });
+  const [formData, setFormData] = useState(getInitialState());
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -95,7 +82,7 @@ const InterviewerFeedbackForm = ({candidateDets,resumeLink}:any) => {
     ) {
       const freshState = getInitialState();
       setFormData(freshState);
-      localStorage.removeItem("interviewFeedbackData");
+      // localStorage.removeItem("interviewFeedbackData");
     }
   };
 
@@ -215,7 +202,7 @@ const InterviewerFeedbackForm = ({candidateDets,resumeLink}:any) => {
       setIsSubmitted(true);
     }
     
-    localStorage.removeItem("interviewFeedbackData");
+    // localStorage.removeItem("interviewFeedbackData");
 
     // setFormData(getInitialState());
     
@@ -262,7 +249,7 @@ const InterviewerFeedbackForm = ({candidateDets,resumeLink}:any) => {
         <div className="sticky top-0 bg-white z-10 p-4 shadow-md shadow-blue-300 flex justify-between items-center">
           <h1 className="text-lg font-bold">Candidate Interview Feedback</h1>
           <div className="flex space-x-2">
-            <button
+            {/* <button
               type="button"
               title="Save"
               onClick={() => {
@@ -276,7 +263,7 @@ const InterviewerFeedbackForm = ({candidateDets,resumeLink}:any) => {
               className="p-2 bg-gray-200 text-white rounded-full hover:bg-gray-300 transition-all duration-200 shadow-md"
             >
               <Save color="black" className="size-5" />
-            </button>
+            </button> */}
 
             <button
               type="button"
