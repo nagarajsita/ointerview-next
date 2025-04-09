@@ -6,9 +6,9 @@ import { INTERVIEWER_BY_GITHUB_ID_QUERY } from "./sanity/lib/queries";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   providers: [GitHub],
-  pages: {
-    signIn: "/signin",
-  },
+  // pages: {
+  //   signIn: "/signin",
+  // },
   callbacks: {
     async signIn({
       user: { name, email, image },
