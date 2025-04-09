@@ -28,22 +28,12 @@ import { auth, signIn } from "@/auth";
 import ScheduleInterview from "@/components/ScheduleInterview";
 import ViewInterviews from "@/components/ViewInterviews";
 import JoinInterviews from "@/components/JoinInterview";
+import ClientTime from "@/components/ClientTime";
 
 const Dashboard = async () => {
   const session = await auth();
   // console.log(session.id);
-  const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString("en-US", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
-  const formattedTime = currentDate.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+ 
 
   if (!session) {
     return (
@@ -70,16 +60,7 @@ const Dashboard = async () => {
     <div className="flex h-full">
       {/* Main Content */}
       <div className="flex-1 p-2 shadow-md rounded-lg">
-        <div className=" rounded-xl p-6 mb-8 relative overflow-hidden shadow-lg">
-          <div className="text-6xl font-bold">{formattedTime}</div>
-          <div className="text-xl text-gray-600 mt-2">{formattedDate}</div>
-
-          {/* Decorative image element */}
-          <div className="absolute right-0 bottom-0 w-1/3 h-full opacity-20">
-            <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 rounded-bl-full"></div>
-          </div>
-        </div>
-
+          <ClientTime/>
         {/* Action Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
           <ScheduleInterview>
