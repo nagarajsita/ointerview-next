@@ -122,7 +122,7 @@ const Candidate = () => {
   };
 
   useEffect(() => {
-    const socket1 = new WebSocket("wss://localhost:8080");
+    const socket1 = new WebSocket("wss://ointerview-node.onrender.com/");
     setSocket(socket1);
 
     socket1.onopen = () => {

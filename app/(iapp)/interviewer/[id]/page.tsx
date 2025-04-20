@@ -146,7 +146,7 @@ const Interviewer = () => {
 
   useEffect(() => {
     if (!roomId) return;
-    const socket = new WebSocket("wss://localhost:8080");
+    const socket = new WebSocket("wss://ointerview-node.onrender.com/");
     setSocket(socket);
     socket.onopen = () => {
       socket.send(
